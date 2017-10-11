@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -54,6 +58,9 @@ public class DreamDetails extends AppCompatActivity {
         txtName.setText(dream.getName());
         txtDesc.setText(dream.getDescription());
         txtPrice.setText(String.valueOf(dream.getPrice()));
+        mName.setText(dream.getName());
+        mDescription.setText(dream.getDescription());
+        mPrice.setText(String.valueOf(dream.getPrice()));
         resetVisibility();
         mDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,12 +73,10 @@ public class DreamDetails extends AppCompatActivity {
         mEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                txtName.setVisibility(View.GONE);
                 txtDesc.setVisibility(View.GONE);
                 txtPrice.setVisibility(View.GONE);
                 mEdit.setVisibility(View.GONE);
                 mDelete.setVisibility(View.GONE);
-                mName.setVisibility(View.VISIBLE);
                 mDescription.setVisibility(View.VISIBLE);
                 mPrice.setVisibility(View.VISIBLE);
                 mCheck.setVisibility(View.VISIBLE);
@@ -95,7 +100,6 @@ public class DreamDetails extends AppCompatActivity {
         });
     }
     private void resetVisibility(){
-        mName.setVisibility(View.GONE);
         mDescription.setVisibility(View.GONE);
         mPrice.setVisibility(View.GONE);
         mCheck.setVisibility(View.GONE);
@@ -106,6 +110,7 @@ public class DreamDetails extends AppCompatActivity {
         mEdit.setVisibility(View.VISIBLE);
         mDelete.setVisibility(View.VISIBLE);
     }
+
     private AlertDialog AskDeleteOption()
     {
         AlertDialog myQuittingDialogBox =new AlertDialog.Builder(this)
@@ -143,7 +148,7 @@ public class DreamDetails extends AppCompatActivity {
                 .setPositiveButton("Edit", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        editDream();
+                        editDream(dream);
                         dialog.dismiss();
                     }
                 })
@@ -158,14 +163,13 @@ public class DreamDetails extends AppCompatActivity {
         return myQuittingDialogBox;
 
     }
-    private void editDream(){
-        edream = new Dream();
-        edream.setName(mName.getText().toString());
-        edream.setDescription(mDescription.getText().toString());
-        edream.setPrice(Float.parseFloat(mPrice.getText().toString()));
+    private void editDream(Dream dream){
 
+        dream.setName(mName.getText().toString());
+        dream.setDescription(mDescription.getText().toString());
+        dream.setPrice(Float.parseFloat(mPrice.getText().toString()));
         intent = new Intent(this, MainActivity.class);
-        intent.putExtra("EDIT",edream);
+        intent.putExtra(PASS_STRING,dream);
         startActivity(intent);
     }
     private void passDeleteInfo(){

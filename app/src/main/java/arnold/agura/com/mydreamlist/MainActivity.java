@@ -32,6 +32,7 @@ import org.w3c.dom.Text;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+import static android.R.attr.data;
 import static android.R.attr.id;
 import static arnold.agura.com.mydreamlist.R.drawable.cover;
 import static arnold.agura.com.mydreamlist.R.drawable.dreamcover;
@@ -54,8 +55,12 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initCollapsingToolbar();
+
         dreamName = getIntent().getStringExtra("DELETE");
-        editDream = (Dream) getIntent().getSerializableExtra("EDIT");
+        Intent intent = getIntent();
+        editDream = (Dream) intent.getSerializableExtra(DreamDetails.PASS_STRING);
         if(dreamName!=null)
             db.deleteDream(dreamName);
         if(editDream!=null)
@@ -79,7 +84,7 @@ public class MainActivity extends Activity {
     private void display() {
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        dreamList = db.getAllAlbum();
+        dreamList = db.getAllDream();
         adapter = new AlbumsAdapter(this, dreamList);
 
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
@@ -138,6 +143,34 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void initCollapsingToolbar() {
+        final CollapsingToolbarLayout collapsingToolbar =
+                (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbar.setTitle(" ");
+        AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
+        appBarLayout.setExpanded(true);
+
+        // hiding & showing the title when toolbar expanded & collapsed
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            boolean isShow = false;
+            int scrollRange = -1;
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if (scrollRange == -1) {
+                    scrollRange = appBarLayout.getTotalScrollRange();
+                }
+                if (scrollRange + verticalOffset == 0) {
+                    collapsingToolbar.setTitle(getString(R.string.app_name));
+                    isShow = true;
+                } else if (isShow) {
+                    collapsingToolbar.setTitle(" ");
+                    isShow = false;
+                }
+            }
+        });
+    }
+
     /**
      * Converting dp to pixel
      */
@@ -157,7 +190,7 @@ public class MainActivity extends Activity {
         if (resultCode == RESULT_OK) {
             if (requestCode == REQ_CODE) {
                 Dream dream = (Dream) data.getSerializableExtra(NewDream.PASS_STRING);
-                db.addAlbum(dream);
+                db.addDream(dream);
                 Intent intent = getIntent();
                 finish();
                 startActivity(intent);

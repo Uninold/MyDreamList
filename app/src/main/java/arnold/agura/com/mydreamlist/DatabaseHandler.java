@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.id;
 import static android.provider.Contacts.SettingsColumns.KEY;
 import static arnold.agura.com.mydreamlist.R.drawable.dream;
 
@@ -33,7 +34,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_DREAMS = "dreams";
 
     // Contacts Table Columns names
-    private static final String KEY_ID = "id";
     private static final String KEY_NAME = "name";
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_PRICE = "price";
@@ -47,8 +47,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_DREAMS_TABLE = "CREATE TABLE " + TABLE_DREAMS + "("
-                + KEY_ID + "INTEGER PRIMARY KEY AUTOINCREMENT" 
-                + KEY_NAME + " TEXT," + KEY_DESCRIPTION + " TEXT," + KEY_PRICE + " FLOAT,"
+                + KEY_NAME + " TEXT PRIMARY KEY," + KEY_DESCRIPTION + " TEXT," + KEY_PRICE + " FLOAT,"
                 + KEY_THUMBNAIL + " BLOB " + ")";
         db.execSQL(CREATE_DREAMS_TABLE);
     }
@@ -80,7 +79,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return null;
         }
     }
-    public void addAlbum(Dream dream) {
+    public void addDream(Dream dream) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -95,22 +94,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Getting single contact
-    public Dream getAlbum(int id) {
+    public Dream getDream(String name) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_DREAMS, new String[] {
-                        KEY_ID,KEY_NAME, KEY_DESCRIPTION,KEY_PRICE, KEY_THUMBNAIL }, KEY_ID + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
+                        KEY_NAME, KEY_DESCRIPTION,KEY_PRICE, KEY_THUMBNAIL }, KEY_NAME + "=?",
+                new String[] { name }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
-        Dream dream = new Dream(cursor.getString(1),cursor.getString(2),cursor.getFloat(3), (cursor.getBlob(4)));
+        Dream dream = new Dream(cursor.getString(0),cursor.getString(1),cursor.getFloat(2), (cursor.getBlob(3)));
         // return contact
         return dream;
     }
 
     // Getting All Contacts
-    public List<Dream> getAllAlbum() {
+    public List<Dream> getAllDream() {
         List<Dream> dreamList = new ArrayList<Dream>();
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_DREAMS;
@@ -135,32 +134,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return dreamList;
     }
 
-    // Getting contacts Count
-    public int getAlbumsCount() {
-        String countQuery = "SELECT  * FROM " + TABLE_DREAMS;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(countQuery, null);
-        cursor.close();
-
-        // return count
-        return cursor.getCount();
-    }
     // Updating single contact
     public int updateDream(Dream dream) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, dream.getName());
         values.put(KEY_DESCRIPTION, dream.getDescription());
         values.put(KEY_PRICE, dream.getPrice());
-        values.put(KEY_THUMBNAIL, dream.getThumbnail());
 
 
         // updating row
-        return db.update(TABLE_DREAMS, values, KEY_ID+ " = ?",
-                new String[] {  getWishID(dream).toString()
-
-        });
+        return db.update(TABLE_DREAMS, values, KEY_THUMBNAIL+ " = ?",
+                new String[] { String.valueOf(dream.getName())});
     }
 
     // Deleting single contact
@@ -176,14 +161,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("delete * from "+ DATABASE_NAME);
         db.close();
     }
-    public Cursor getWishID(Dream dream ){
-        Bitmap map = BitmapFactory.decodeByteArray(dream.getThumbnail(), 0, dream.getThumbnail().length);
-        SQLiteDatabase db = this.getWritableDatabase();
-        String str = new String (dream.getThumbnail());
-        String query ="SELECT " + KEY_ID + " FROM " + TABLE_DREAMS +
-                " WHERE " + KEY_THUMBNAIL + " = '" + str + "'";
-        Cursor data = db.rawQuery(query,null);
-        return data;
-    }
+
 
 }
